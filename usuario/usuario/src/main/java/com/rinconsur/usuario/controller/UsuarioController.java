@@ -1,5 +1,6 @@
 package com.rinconsur.usuario.controller;
 
+import com.rinconsur.usuario.dto.LoginRequest;
 import com.rinconsur.usuario.dto.CrearUsuarioRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,10 +35,15 @@ public class UsuarioController {
     public UsuarioResponse obtener(@PathVariable Long id) {
         return usuarioService.obtener(id);
     }
-    
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UsuarioResponse crear(@RequestBody CrearUsuarioRequest datos) {
         return usuarioService.crear(datos);
+    }
+
+    @PostMapping("/login")
+    public UsuarioResponse iniciarSesion(@RequestBody LoginRequest datos) {
+        return usuarioService.iniciarSesion(datos);
     }
 }

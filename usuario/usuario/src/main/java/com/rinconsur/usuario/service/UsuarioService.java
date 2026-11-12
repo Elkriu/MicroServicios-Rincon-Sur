@@ -1,5 +1,6 @@
 package com.rinconsur.usuario.service;
 
+import com.rinconsur.usuario.dto.LoginRequest;
 import com.rinconsur.usuario.dto.CrearUsuarioRequest;
 import com.rinconsur.usuario.dto.RolResponse;
 import com.rinconsur.usuario.dto.UsuarioResponse;
@@ -40,7 +41,6 @@ public class UsuarioService {
                 .toList();
     }
 
-    /** Filtros opcionales: texto (nombre o correo), rol y estado. Ej.: observadores activos = ?rolId=1&activo=true */
     public List<UsuarioResponse> listar(String buscar, Long rolId, Boolean activo) {
         List<Usuario> usuarios = (buscar == null || buscar.isBlank())
                 ? usuarioRepository.findAllByOrderByNombreAsc()
@@ -74,6 +74,19 @@ public class UsuarioService {
                 .rol(buscarRol(rolId))
                 .build();
         return aRespuesta(usuarioRepository.save(nuevo));
+    }
+
+    
+    public UsuarioResponse iniciarSesion(LoginRequest datos) {
+        String correo = normalizarCorreo(datos.correo());
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .filter(u -> datos.contrasena() != null && passwordEncoder.matches(datos.contrasena(), u.getContrasena()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos"));
+
+        if (!usuario.isActivo()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta ha sido suspendida. Contacta al Administrador.");
+        }
+        return aRespuesta(usuario);
     }
 
 
