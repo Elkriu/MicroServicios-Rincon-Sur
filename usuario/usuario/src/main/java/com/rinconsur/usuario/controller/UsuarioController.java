@@ -1,5 +1,10 @@
 package com.rinconsur.usuario.controller;
 
+import com.rinconsur.usuario.dto.CrearUsuarioRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import com.rinconsur.usuario.dto.UsuarioResponse;
 import com.rinconsur.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +33,11 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public UsuarioResponse obtener(@PathVariable Long id) {
         return usuarioService.obtener(id);
+    }
+    
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UsuarioResponse crear(@RequestBody CrearUsuarioRequest datos) {
+        return usuarioService.crear(datos);
     }
 }

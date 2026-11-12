@@ -1,24 +1,38 @@
 package com.rinconsur.usuario.service;
 
+import com.rinconsur.usuario.dto.CrearUsuarioRequest;
 import com.rinconsur.usuario.dto.RolResponse;
 import com.rinconsur.usuario.dto.UsuarioResponse;
+import com.rinconsur.usuario.model.Rol;
 import com.rinconsur.usuario.model.Usuario;
 import com.rinconsur.usuario.repository.RolRepository;
 import com.rinconsur.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
 
+    private static final String DOMINIO = "@rinconsur.cl";
+    private static final int CORREO_MAX = 50;
+    private static final int NOMBRE_MAX = 50;
+
+    private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$");
+
+    private static final Pattern PATRON_CLAVE =
+            Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!._\\-]).{8,}$");
+
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<RolResponse> listarRoles() {
         return rolRepository.findAll().stream()
@@ -43,9 +57,75 @@ public class UsuarioService {
         return aRespuesta(buscar(id));
     }
 
+    public UsuarioResponse crear(CrearUsuarioRequest datos) {
+        String correo = normalizarCorreo(datos.correo());
+        validarNombre(datos.nombre());
+        validarCorreo(correo);
+        validarClave(datos.contrasena());
+        if (usuarioRepository.existsByCorreo(correo)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ese correo ya está registrado");
+        }
+
+        Long rolId = datos.rolId() != null ? datos.rolId() : Rol.ID_OBSERVADOR;
+        Usuario nuevo = Usuario.builder()
+                .nombre(datos.nombre().trim())
+                .correo(correo)
+                .contrasena(passwordEncoder.encode(datos.contrasena()))
+                .rol(buscarRol(rolId))
+                .build();
+        return aRespuesta(usuarioRepository.save(nuevo));
+    }
+
+
     public Usuario buscar(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    }
+
+    public String normalizarCorreo(String correo) {
+        return correo == null ? "" : correo.trim().toLowerCase();
+    }
+
+    public void validarCorreo(String correo) {
+        if (correo.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo es obligatorio");
+        }
+        if (correo.length() > CORREO_MAX) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo no puede superar los " + CORREO_MAX + " caracteres");
+        }
+        if (!correo.contains("@")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ingresa un correo válido");
+        }
+        if (!correo.endsWith(DOMINIO)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes usar tu correo institucional " + DOMINIO);
+        }
+    }
+
+    public void validarClave(String clave) {
+        if (clave == null || clave.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña es obligatoria");
+        }
+        if (!PATRON_CLAVE.matcher(clave).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La contraseña debe tener mínimo 8 caracteres, con mayúscula, minúscula y un símbolo (@#$%^&+=!._-)");
+        }
+    }
+
+    private void validarNombre(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre completo es obligatorio");
+        }
+        if (nombre.length() > NOMBRE_MAX) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre no puede superar los " + NOMBRE_MAX + " caracteres");
+        }
+        if (!PATRON_NOMBRE.matcher(nombre).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre solo puede contener letras y espacios");
+        }
+    }
+
+    private Rol buscarRol(Long rolId) {
+        return rolRepository.findById(rolId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "El rol indicado no existe"));
     }
 
     private UsuarioResponse aRespuesta(Usuario usuario) {
@@ -60,7 +140,6 @@ public class UsuarioService {
         );
     }
 
-    // Por ahora siempre es null; cuando se agregue la foto (commit de perfil) ya queda funcionando
     private String urlFoto(Usuario usuario) {
         if (usuario.getFotoPerfil() == null) {
             return null;
