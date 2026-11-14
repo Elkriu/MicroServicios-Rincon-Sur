@@ -92,7 +92,7 @@ public class UsuarioService {
         }
         return aRespuesta(usuario);
     }
-    
+
     public void cambiarContrasena(Long id, CambiarContrasenaRequest datos) {
         Usuario usuario = buscar(id);
 
@@ -212,5 +212,15 @@ public class UsuarioService {
                 .path("/api/usuarios/" + usuario.getId() + "/foto")
                 .queryParam("v", usuario.getFotoPerfil())
                 .toUriString();
+    }
+
+    public Usuario buscarPorCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La cuenta no está registrada"));
+    }
+
+    public void guardarContrasena(Usuario usuario, String nueva) {
+        usuario.setContrasena(passwordEncoder.encode(nueva));
+        usuarioRepository.save(usuario);
     }
 }
