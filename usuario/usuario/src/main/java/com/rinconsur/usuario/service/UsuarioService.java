@@ -1,5 +1,7 @@
 package com.rinconsur.usuario.service;
 
+import com.rinconsur.usuario.dto.CambiarEstadoRequest;
+import com.rinconsur.usuario.dto.CambiarRolRequest;
 import com.rinconsur.usuario.dto.CambiarContrasenaRequest;
 import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,6 +80,24 @@ public class UsuarioService {
                 .rol(buscarRol(rolId))
                 .build();
         return aRespuesta(usuarioRepository.save(nuevo));
+    }
+
+    public UsuarioResponse cambiarRol(Long id, CambiarRolRequest datos) {
+        if (datos.rolId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes indicar el rol");
+        }
+        Usuario usuario = buscar(id);
+        usuario.setRol(buscarRol(datos.rolId()));
+        return aRespuesta(usuarioRepository.save(usuario));
+    }
+
+    public UsuarioResponse cambiarEstado(Long id, CambiarEstadoRequest datos) {
+        if (datos.activo() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes indicar si la cuenta queda activa");
+        }
+        Usuario usuario = buscar(id);
+        usuario.setActivo(datos.activo());
+        return aRespuesta(usuarioRepository.save(usuario));
     }
 
     

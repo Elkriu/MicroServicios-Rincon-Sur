@@ -1,5 +1,7 @@
 package com.rinconsur.usuario.controller;
 
+import com.rinconsur.usuario.dto.CambiarEstadoRequest;
+import com.rinconsur.usuario.dto.CambiarRolRequest;
 import com.rinconsur.usuario.dto.CambiarContrasenaRequest;
 import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
 import org.springframework.http.MediaType;
@@ -69,10 +71,20 @@ public class UsuarioController {
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(usuarioService.obtenerFoto(id));
     }
-    
+
     @PutMapping("/{id}/contrasena")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cambiarContrasena(@PathVariable Long id, @RequestBody CambiarContrasenaRequest datos) {
         usuarioService.cambiarContrasena(id, datos);
+    }
+
+    @PutMapping("/{id}/rol")
+    public UsuarioResponse cambiarRol(@PathVariable Long id, @RequestBody CambiarRolRequest datos) {
+        return usuarioService.cambiarRol(id, datos);
+    }
+
+    @PutMapping("/{id}/estado")
+    public UsuarioResponse cambiarEstado(@PathVariable Long id, @RequestBody CambiarEstadoRequest datos) {
+        return usuarioService.cambiarEstado(id, datos);
     }
 }
