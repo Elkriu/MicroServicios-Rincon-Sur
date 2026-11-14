@@ -1,5 +1,10 @@
 package com.rinconsur.usuario.controller;
 
+import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.multipart.MultipartFile;
 import com.rinconsur.usuario.dto.LoginRequest;
 import com.rinconsur.usuario.dto.CrearUsuarioRequest;
 import org.springframework.http.HttpStatus;
@@ -45,5 +50,22 @@ public class UsuarioController {
     @PostMapping("/login")
     public UsuarioResponse iniciarSesion(@RequestBody LoginRequest datos) {
         return usuarioService.iniciarSesion(datos);
+    }
+
+    @PutMapping("/{id}")
+    public UsuarioResponse actualizarPerfil(@PathVariable Long id, @RequestBody ActualizarPerfilRequest datos) {
+        return usuarioService.actualizarPerfil(id, datos);
+    }
+
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UsuarioResponse subirFoto(@PathVariable Long id, @RequestParam("archivo") MultipartFile archivo) {
+        return usuarioService.subirFoto(id, archivo);
+    }
+
+    @GetMapping("/{id}/foto")
+    public ResponseEntity<byte[]> obtenerFoto(@PathVariable Long id) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(usuarioService.obtenerFoto(id));
     }
 }

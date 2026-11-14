@@ -1,5 +1,7 @@
 package com.rinconsur.usuario.service;
 
+import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
+import org.springframework.web.multipart.MultipartFile;
 import com.rinconsur.usuario.dto.LoginRequest;
 import com.rinconsur.usuario.dto.CrearUsuarioRequest;
 import com.rinconsur.usuario.dto.RolResponse;
@@ -34,6 +36,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AlmacenamientoService almacenamientoService;
 
     public List<RolResponse> listarRoles() {
         return rolRepository.findAll().stream()
@@ -87,6 +90,41 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta ha sido suspendida. Contacta al Administrador.");
         }
         return aRespuesta(usuario);
+    }
+
+
+    public UsuarioResponse actualizarPerfil(Long id, ActualizarPerfilRequest datos) {
+        Usuario usuario = buscar(id);
+        String correo = normalizarCorreo(datos.correo());
+
+        validarNombre(datos.nombre());
+        validarCorreo(correo);
+        if (usuarioRepository.existsByCorreoAndIdNot(correo, id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ese correo ya está registrado");
+        }
+
+        usuario.setNombre(datos.nombre().trim());
+        usuario.setCorreo(correo);
+        return aRespuesta(usuarioRepository.save(usuario));
+    }
+
+    public UsuarioResponse subirFoto(Long id, MultipartFile archivo) {
+        Usuario usuario = buscar(id);
+        String anterior = usuario.getFotoPerfil();
+
+        usuario.setFotoPerfil(almacenamientoService.guardar(archivo));
+        Usuario guardado = usuarioRepository.save(usuario);
+
+        almacenamientoService.eliminar(anterior); // borra la foto vieja para no acumular archivos
+        return aRespuesta(guardado);
+    }
+
+    public byte[] obtenerFoto(Long id) {
+        Usuario usuario = buscar(id);
+        if (usuario.getFotoPerfil() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no tiene foto");
+        }
+        return almacenamientoService.leer(usuario.getFotoPerfil());
     }
 
 
