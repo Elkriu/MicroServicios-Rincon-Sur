@@ -1,5 +1,6 @@
 package com.rinconsur.usuario.controller;
 
+import com.rinconsur.usuario.dto.CambiarContrasenaRequest;
 import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -67,5 +68,11 @@ public class UsuarioController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(usuarioService.obtenerFoto(id));
+    }
+    
+    @PutMapping("/{id}/contrasena")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cambiarContrasena(@PathVariable Long id, @RequestBody CambiarContrasenaRequest datos) {
+        usuarioService.cambiarContrasena(id, datos);
     }
 }

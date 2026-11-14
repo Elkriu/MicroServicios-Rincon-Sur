@@ -1,5 +1,6 @@
 package com.rinconsur.usuario.service;
 
+import com.rinconsur.usuario.dto.CambiarContrasenaRequest;
 import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
 import org.springframework.web.multipart.MultipartFile;
 import com.rinconsur.usuario.dto.LoginRequest;
@@ -90,6 +91,18 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta ha sido suspendida. Contacta al Administrador.");
         }
         return aRespuesta(usuario);
+    }
+    
+    public void cambiarContrasena(Long id, CambiarContrasenaRequest datos) {
+        Usuario usuario = buscar(id);
+
+        if (datos.actual() == null || !passwordEncoder.matches(datos.actual(), usuario.getContrasena())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La contraseña actual es incorrecta");
+        }
+        validarClave(datos.nueva());
+
+        usuario.setContrasena(passwordEncoder.encode(datos.nueva()));
+        usuarioRepository.save(usuario);
     }
 
 
