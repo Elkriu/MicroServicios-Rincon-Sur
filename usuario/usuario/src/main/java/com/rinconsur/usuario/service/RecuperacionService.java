@@ -17,10 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
-/**
- * Flujo "Olvidé mi contraseña" (3 pasos, igual que las pantallas de la app):
- * 1) solicitar el código  2) verificarlo  3) restablecer la clave (reenviando el código).
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor

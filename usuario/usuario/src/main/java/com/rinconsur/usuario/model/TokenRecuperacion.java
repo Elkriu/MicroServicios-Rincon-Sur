@@ -6,20 +6,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 /** Código de 6 dígitos para recuperar la clave. Hay uno por correo (el nuevo reemplaza al anterior). */
 @Entity
 @Table(name = "tokens_recuperacion")
-@Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Data 
+@NoArgsConstructor
+@Builder 
 public class TokenRecuperacion {
 
     @Id
