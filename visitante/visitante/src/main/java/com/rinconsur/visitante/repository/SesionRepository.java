@@ -9,6 +9,8 @@ public interface SesionRepository extends JpaRepository<Sesion, Long> {
 
     List<Sesion> findByUsuarioIdOrderByIdDesc(Long usuarioId);
 
+    List<Sesion> findByEstadoNot(String estado);
+
     boolean existsByUsuarioIdAndEstadoNot(Long usuarioId, String estado);
 
     boolean existsByAccesoAndEstadoNot(String acceso, String estado);

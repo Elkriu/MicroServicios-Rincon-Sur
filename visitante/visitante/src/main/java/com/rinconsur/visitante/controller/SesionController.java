@@ -43,6 +43,11 @@ public class SesionController {
         return sesionService.obtener(id);
     }
 
+    @GetMapping("/activas")
+    public List<SesionResponse> listarActivas() {
+        return sesionService.listarActivas();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SesionResponse crear(@RequestBody CrearSesionRequest datos) {

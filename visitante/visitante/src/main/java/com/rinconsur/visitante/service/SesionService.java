@@ -33,6 +33,12 @@ public class SesionService {
     private final RegistroConteoRepository registroRepository;
     private final UsuarioClient usuarioClient;
 
+    public List<SesionResponse> listarActivas() {
+        return sesionRepository.findByEstadoNot(Sesion.FINALIZADA).stream()
+                .map(this::aRespuesta)
+                .toList();
+    }
+
     public List<SesionResponse> listarPorUsuario(Long usuarioId) {
         return sesionRepository.findByUsuarioIdOrderByIdDesc(usuarioId).stream()
                 .map(this::aRespuesta)
