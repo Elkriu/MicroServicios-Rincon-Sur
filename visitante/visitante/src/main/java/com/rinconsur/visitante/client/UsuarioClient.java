@@ -1,7 +1,7 @@
 package com.rinconsur.visitante.client;
 
 import com.rinconsur.visitante.dto.UsuarioResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,14 +10,17 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException;
 
 @Component
-@RequiredArgsConstructor
 public class UsuarioClient {
 
-    private final WebClient usuarioWebClient;
+    private final WebClient webClient;
+
+    public UsuarioClient(@Qualifier("usuarioWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     public UsuarioResponse obtener(Long id) {
         try {
-            return usuarioWebClient.get()
+            return webClient.get()
                     .uri("/api/usuarios/{id}", id)
                     .retrieve()
                     .bodyToMono(UsuarioResponse.class)

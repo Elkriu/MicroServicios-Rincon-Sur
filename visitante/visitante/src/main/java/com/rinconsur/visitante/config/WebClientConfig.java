@@ -14,4 +14,11 @@ public class WebClientConfig {
                 .baseUrl(urlBase)
                 .build();
     }
+
+    @Bean
+    public WebClient administracionWebClient(@Value("${app.ms-administracion.url}") String urlBase) {
+        return WebClient.builder()
+                .baseUrl(urlBase)
+                .build();
+    }
 }

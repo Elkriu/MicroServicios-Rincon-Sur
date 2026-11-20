@@ -1,6 +1,8 @@
 package com.rinconsur.visitante.service;
 
+import com.rinconsur.visitante.client.AccesoClient;
 import com.rinconsur.visitante.client.UsuarioClient;
+import com.rinconsur.visitante.dto.AccesoResponse;
 import com.rinconsur.visitante.dto.CrearSesionRequest;
 import com.rinconsur.visitante.dto.EstadisticasResponse;
 import com.rinconsur.visitante.dto.GuardarRegistroRequest;
@@ -32,15 +34,16 @@ public class SesionService {
     private final SesionRepository sesionRepository;
     private final RegistroConteoRepository registroRepository;
     private final UsuarioClient usuarioClient;
+    private final AccesoClient accesoClient;
 
-    public List<SesionResponse> listarActivas() {
-        return sesionRepository.findByEstadoNot(Sesion.FINALIZADA).stream()
+    public List<SesionResponse> listarPorUsuario(Long usuarioId) {
+        return sesionRepository.findByUsuarioIdOrderByIdDesc(usuarioId).stream()
                 .map(this::aRespuesta)
                 .toList();
     }
 
-    public List<SesionResponse> listarPorUsuario(Long usuarioId) {
-        return sesionRepository.findByUsuarioIdOrderByIdDesc(usuarioId).stream()
+    public List<SesionResponse> listarActivas() {
+        return sesionRepository.findByEstadoNot(Sesion.FINALIZADA).stream()
                 .map(this::aRespuesta)
                 .toList();
     }
@@ -74,6 +77,12 @@ public class SesionService {
         if (!observador.activo()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta del observador está suspendida");
         }
+
+        AccesoResponse puerta = accesoClient.obtener(acceso);
+        if (!puerta.disponible()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El acceso está cerrado");
+        }
+
         if (sesionRepository.existsByUsuarioIdAndEstadoNot(datos.usuarioId(), Sesion.FINALIZADA)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El observador ya tiene una sesión activa");
         }
