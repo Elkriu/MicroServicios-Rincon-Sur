@@ -6,6 +6,8 @@ import com.rinconsur.usuario.dto.CambiarContrasenaRequest;
 import com.rinconsur.usuario.dto.ActualizarPerfilRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -74,31 +76,66 @@ public class UsuarioController {
         return usuarioService.crear(datos);
     }
 
+    @Operation(summary = "Iniciar sesión",
+            description = "Comprueba correo y clave. No entrega token: devuelve los datos del usuario y la app guarda su id. "
+                    + "Si el correo no existe o la clave no coincide responde el mismo 401, para no revelar qué correos están registrados.")
+    @ApiResponse(responseCode = "200", description = "Credenciales correctas")
+    @ApiResponse(responseCode = "401", description = "Correo o contraseña incorrectos")
+    @ApiResponse(responseCode = "403", description = "La cuenta está suspendida")
     @PostMapping("/login")
     public UsuarioResponse iniciarSesion(@RequestBody LoginRequest datos) {
         return usuarioService.iniciarSesion(datos);
     }
 
+    @Operation(summary = "Editar el perfil (nombre y correo)")
+    @ApiResponse(responseCode = "200", description = "Perfil actualizado")
+    @ApiResponse(responseCode = "400", description = "Nombre o correo inválidos")
+    @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    @ApiResponse(responseCode = "409", description = "Ese correo ya lo usa otro usuario")
     @PutMapping("/{id}")
-    public UsuarioResponse actualizarPerfil(@PathVariable Long id, @RequestBody ActualizarPerfilRequest datos) {
+    public UsuarioResponse actualizarPerfil(
+            @Parameter(description = "Id del usuario", example = "1") @PathVariable Long id,
+            @RequestBody ActualizarPerfilRequest datos) {
         return usuarioService.actualizarPerfil(id, datos);
     }
 
+    @Operation(summary = "Subir la foto de perfil",
+            description = "Se envía como multipart/form-data en el campo archivo. Debe ser una imagen de máximo 5 MB. "
+                    + "Reemplaza la foto anterior, que se borra del servidor.")
+    @ApiResponse(responseCode = "200", description = "Foto guardada; la respuesta trae fotoPerfilUrl")
+    @ApiResponse(responseCode = "400", description = "No se recibió archivo o no es una imagen")
+    @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UsuarioResponse subirFoto(@PathVariable Long id, @RequestParam("archivo") MultipartFile archivo) {
+    public UsuarioResponse subirFoto(
+            @Parameter(description = "Id del usuario", example = "1") @PathVariable Long id,
+            @Parameter(description = "Imagen de perfil") @RequestParam("archivo") MultipartFile archivo) {
         return usuarioService.subirFoto(id, archivo);
     }
 
+    @Operation(summary = "Ver la foto de perfil",
+            description = "Devuelve la imagen. Es la URL que viene en fotoPerfilUrl, así que también se puede abrir en el navegador.")
+    @ApiResponse(responseCode = "200", description = "Imagen JPEG de la foto de perfil",
+            content = @Content(mediaType = "image/jpeg", schema = @Schema(type = "string", format = "binary")))
+    @ApiResponse(responseCode = "404", description = "El usuario no existe, no tiene foto o el archivo no está en el servidor")
     @GetMapping("/{id}/foto")
-    public ResponseEntity<byte[]> obtenerFoto(@PathVariable Long id) {
+    public ResponseEntity<byte[]> obtenerFoto(
+            @Parameter(description = "Id del usuario", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(usuarioService.obtenerFoto(id));
     }
 
+    @Operation(summary = "Cambiar la clave con la sesión iniciada",
+            description = "Pide la clave actual. Para quien olvidó su clave está el flujo de recuperación en 3 pasos.")
+    @ApiResponse(responseCode = "204", description = "Clave cambiada (sin contenido en la respuesta)")
+    @ApiResponse(responseCode = "400", description = "La clave nueva no cumple el formato")
+    @ApiResponse(responseCode = "401", description = "La contraseña actual es incorrecta")
+    @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     @PutMapping("/{id}/contrasena")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cambiarContrasena(@PathVariable Long id, @RequestBody CambiarContrasenaRequest datos) {
+    public void cambiarContrasena(
+            @Parameter(description = "Id del usuario", example = "1") @PathVariable Long id,
+            @RequestBody CambiarContrasenaRequest datos) {
         usuarioService.cambiarContrasena(id, datos);
     }
 
