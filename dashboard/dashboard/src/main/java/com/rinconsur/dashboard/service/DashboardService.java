@@ -66,7 +66,7 @@ public class DashboardService {
                 agrupar(registros, RegistroDetalleResponse::clasificacion, POR_CANTIDAD),
                 agrupar(registros, RegistroDetalleResponse::rangoEtario, POR_CANTIDAD),
                 agrupar(registros, RegistroDetalleResponse::compania, POR_CANTIDAD),
-                agrupar(registros, r -> r.bolsas() ? "Con bolsas" : "Sin bolsas", POR_CANTIDAD)
+                agrupar(registros, r -> r.bolsas() ? "Sí trae" : "No trae", POR_CANTIDAD)
         );
     }
 
