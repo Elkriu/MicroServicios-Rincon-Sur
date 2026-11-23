@@ -27,6 +27,9 @@ public class UsuarioClient {
                     .block();
         } catch (WebClientResponseException.NotFound e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El observador no existe");
+        } catch (WebClientResponseException.ServiceUnavailable e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo contactar con el servicio de usuarios");
         } catch (WebClientRequestException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "No se pudo contactar con el servicio de usuarios");
