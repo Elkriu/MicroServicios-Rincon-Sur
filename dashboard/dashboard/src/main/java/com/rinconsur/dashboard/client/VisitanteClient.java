@@ -30,6 +30,9 @@ public class VisitanteClient {
                     .bodyToMono(new ParameterizedTypeReference<List<RegistroDetalleResponse>>() { })
                     .block();
             return registros == null ? List.of() : registros;
+        } catch (WebClientResponseException.ServiceUnavailable e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo contactar con el servicio de visitantes");
         } catch (WebClientRequestException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "No se pudo contactar con el servicio de visitantes");
@@ -47,6 +50,9 @@ public class VisitanteClient {
                     .bodyToMono(new ParameterizedTypeReference<List<String>>() { })
                     .block();
             return fechas == null ? List.of() : fechas;
+        } catch (WebClientResponseException.ServiceUnavailable e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "No se pudo contactar con el servicio de visitantes");
         } catch (WebClientRequestException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "No se pudo contactar con el servicio de visitantes");
